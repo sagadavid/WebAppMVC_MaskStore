@@ -1,0 +1,2 @@
+﻿ add-migration -context maskcontext -outputdir data\maskmigrations initial
+ update-database -context maskcontext
