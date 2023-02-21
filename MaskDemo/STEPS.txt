@@ -1,0 +1,86 @@
+﻿
+david stovell mask demo
+
+-  install-package Microsoft.EntityFrameworkCore.Sqlite
+- delete this line of code in cproj/edit file —> <Nullable>enable</Nullable>
+-  _layout which is html base of all views has container, which renders all views, inside
+-  js scripts are to render in layout
+-  all is controller and action and is done by helper tags, dynamically
+-  areas use identity features to distinguish form normal pages, views etc
+-  wwwroot is ~/
+-  data folder is there because of identity is clicked in the begeinning 
+-  applicationdbcontext inherits identitydbcontext as well here, 
+-  dbcontext is interface between you and database
+-  migrations are almost timestamped, incremental changes tracked in up and down
+- add dbcontext
+- two connection strings, one for identity system and one for database
+- connection string for sqlite —> Filename=MaskDatabase.db
+- show which dbconnectioin to choose and where to store them :
+- > PM> add-migration -context MaskContext -outputdir Data\MaskMigrations maskmigr0
+- PM> update-database -context maskcontext
+- tip4u>  create your own dbconnection in program.cs and dbset in dbconnection... so if you need to represent a new dbconnection and dbset you can use it !!
+- migration history table keeps us in sync, update-database of package console
+-  cntrl+m+o —> shrink codes
+-  builtin methods of _context are actually sql commands/queries on database
+-  get index —> _context.Masks.ToListAsync  AMA get create bos geliyor
+-  in valid modelstate, post create —— >>>> return redirectto index !!!!
+-  when you needed to change the name of aciton becouz no two methods can exit with same signature, but still need to refer same action name… use attribution [actionname()]
+- if you changed models after migration, add new migration in sql server.. but in sqlite u have one shot… so, delete sqlite db file right under project folder and migration folder !!!..
+- child parent-in adini ve soyadini almali, parent children-i bilmeli
+- sqlserver holds nvarcharmax like very very big data… to limit string maxlength or stringlength attributes are used
+- if models are changed.. overwrite controller and views, by adding them again !!
+- instead of nullabale navigation collection of children in parent, initialize it by new
+- though we have created our own dbcontext (maskdbcontext) we still have need of applicationdbcontext to hold security tables !! so if you r gonno use sqlite, reproduce migration for them.
+
+How To Use SQLITE with .NET Core MVC
+
+Assume we have a site fully working with MVC as taught in our class.
+1/ Install a NuGet package. (If you are using an older version of .NET
+Core then optionally specify the same version.)
+PM> Install-Package Microsoft.EntityFrameworkCore.Sqlite
+OR
+PM> Install-Package Microsoft.EntityFrameworkCore.Sqlite -v 6.0.8
+2/ In Program.cs, whenever you add a DbContext, change the options.UseSq|Server() to use options.UseSqlite ().
+builder.Services.AddDbContext<MaskContext>(options =>
+options.UseSqlite (connectionString));
+3/ In appsettings.json, you will need new versions of the connection
+strings. It will work both locally and on Azure.
+"ConnectionStrings": (
+"MedicalOfficeContext": "Filename=./Data/MedicalOffice.db",
+"DefaultConnection": "Filename=./Data/MedicalOfficeIdentity.db"
+You don't have to put them in the Data folder, they can be in the root of the project.
+You can just comment out the ones for SOL Server.
+That's it... Almost
+A bit more work is needed if you are using Timestamps for concurrency control.
+In addition, remember that you are limited to using a single migration.
+
+david stovell on data annotations
+
+Next, we want to change the 1:m relationship so you cannot delete a Mask Type if there are any Masks of that type in the system (Restrict Cascade Delete)
+
+Let's use the Fluent API for this. Add the following code to the MaskContext DbContext:
+
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+
+//Prevent Cascade Delete from MaskType to Mask //This example 
+written from the Parent viewpoint modelBuilder. Entity<MaskType>() .HasMany<Mask>(m=>m.Masks)
+WithOne(m=>m.MaskType)
+.HasForeignKey(m=>m.MaskTypelD)
+.OnDelete(DeleteBehavior. Restrict);
+
+/Same example written from the Child viewpoint //modelBuilder. Entity<Mask>()
+// .HasOne<MaskType>(m=>m.MaskType)
+.WithMany(m=>m.Masks)
+.HasForeignKey(m=>m.MaskTypelD)
+OnDelete(Delete Behavior. Restrict);
+
+Now, Start fresh on migrations and re-create the controllers
+Note: Add to site.Cs
+
+david stovell COMMON  COMMANDS
+
+add-migration -context maskcontext -outputdir data\maskmigrations initial
+update-database -context maskcontext
+
+add-migration -context applicationdbcontext -outputdir data\migrations initial
+update-database -context applicationdbcontext
